@@ -1,0 +1,23 @@
+CREATE TRIGGER `update_completed_cattle` AFTER INSERT ON `cattle_list`
+ FOR EACH ROW BEGIN
+    
+    DECLARE farmer_number BIGINT;
+    DECLARE completed_cattle INT;
+    DECLARE refusal_cattle INT;
+    
+    SELECT COUNT(cattle_list.cow_id) INTO completed_cattle
+        FROM cattle_list
+        WHERE cattle_list.user_id = NEW.user_id;
+        
+    SELECT (refusal.total_cattles - refusal.attended_cattles) INTO refusal_cattle
+        FROM refusal
+        WHERE refusal.user_id = NEW.user_id;
+        
+    SELECT phone INTO farmer_number
+    	FROM addowner
+    	WHERE addowner.id = NEW.user_id;
+    
+    UPDATE exelsheet
+    SET exelsheet.completed_cattle = completed_cattle, exelsheet.refusal_cattle = refusal_cattle
+    WHERE exelsheet.farmer_number = farmer_number;
+END
